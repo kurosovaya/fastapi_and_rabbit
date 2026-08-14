@@ -1,0 +1,104 @@
+services:
+  mongo:
+    image: mongo:8
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    command: mongod --replSet rs0
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 3s
+      retries: 10
+  mongo-init:
+    image: mongo:8
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: []
+    entrypoint:
+      - mongosh
+      - --host
+      - mongo
+      - --eval
+      - "try {
+        rs.status()
+        } catch (e) {
+        rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongo:27017'}]})
+        }"
+    restart: "no"
+  rabbitmq:
+    image: rabbitmq:4.3.4-management-alpine
+    ports: ["5672:5672", "15672:15672"]
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q check_port_connectivity
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+  api:
+    volumes:
+      - ./services/api:/app
+      - ./services/shared:/app/shared
+    command: uvicorn main:app --host 0.0.0.0 --port 9000 --reload
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    ports:
+      - "9000:9000"
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    deploy:
+      replicas: 1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    # ports:
+    #   - "5678:5678"
+  sink:
+    build:
+      context: .
+      dockerfile: services/sink/Dockerfile
+    volumes:
+      - ./services/sink:/app
+      - ./services/shared:/app/shared
+    ports:
+      - 9001:9001
+    command: uvicorn main:app --host 0.0.0.0 --port 9001 --reload
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9002:9090
+    volumes:
+      - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 9003:3000
+    depends_on:
+      - prometheus
+    volumes:
+      - ./services/grafana:/etc/grafana/provisioning/datasources
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+networks:
+  default:
+
+volumes:
+  mongo-data:
+  rabbitmq-data:
+  prometheus-data:
+  grafana-data:

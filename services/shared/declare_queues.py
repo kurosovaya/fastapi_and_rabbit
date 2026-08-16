@@ -1,6 +1,6 @@
 import aio_pika
 import asyncio
-from shared.config import Config
+from config import Config
 
 
 async def declare_queues():
@@ -17,7 +17,7 @@ async def declare_queues():
     )
 
     await deliver_queue.bind(exchange, Config.DELIVER_ROUTING_KEY)
-    await dead_queue.bind(dead_exchange, "dlq")
+    await dead_queue.bind(dead_exchange, Config.DLQ_ROUTING_KEY)
 
     timeouts = [1, 5, 25, 125]
     for t in timeouts:

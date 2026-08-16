@@ -1,12 +1,18 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     ORDER_CREATED = "order.created"
     PAYMENT_SUCCEEDED = "payment.succeeded"
     USER_REGISTERED = "user.registered"
 
-class RabbitCustomFields(str, Enum):
+class DlvStatus(StrEnum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    DELIVERED = "delivered"
+    FAILED = "failed"
+
+class RabbitCustomFields(StrEnum):
     URL = "X-URL"
     ATTEMPT = "X-Attempt"
     ERR = "X-ERR"

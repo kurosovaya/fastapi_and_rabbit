@@ -12,6 +12,8 @@ async def mongo_lifespan(app: FastAPI):
     app.state.mongodb_client = client
     events_collection = client["webhooks"]["events"]
     await events_collection.create_index("idempotency_key", unique=True)
+    clients_collection = client["webhooks"]["clients"]
+    await clients_collection.create_index("client_name", unique=True)
     # app.state.mongodb_database =
     yield
     await client.close()

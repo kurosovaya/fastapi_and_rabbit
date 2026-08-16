@@ -27,6 +27,15 @@ services:
         rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongo:27017'}]})
         }"
     restart: "no"
+  mongodb_exporter:
+    image: percona/mongodb_exporter:0.52
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: 
+       ["--compatible-mode", "--collect-all", "--mongodb.uri=mongodb://mongo:27017/?directConnection=true"]
+    ports:
+      - 9216:9216
   rabbitmq:
     image: rabbitmq:4.3.4-management-alpine
     ports: ["5672:5672", "15672:15672"]

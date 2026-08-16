@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class Config(Enum, str):
+class Config(StrEnum):
 
     RABBIT_URL = "amqp://guest:guest@rabbitmq:5672/"
     EXCHANGE_NAME = "webhooks.direct"

@@ -13,6 +13,7 @@ dependencies = [
     "fastapi[standard]>=0.141.1",
     "httpx>=0.28.1",
     "pika>=1.4.4",
+    "prometheus-client>=0.26.0",
     "prometheus-fastapi-instrumentator>=8.1.0",
     "pymongo>=4.17.0",
     "uvicorn>=0.52.1",

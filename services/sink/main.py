@@ -53,7 +53,7 @@ async def hook(
     if num <= clients_stngs.success_percent:
         received_hooks[client_id].append(hook.model_dump())
     else:
-        JSONResponse("Error!", status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JSONResponse("Error!", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.put("/config/{client_id}")

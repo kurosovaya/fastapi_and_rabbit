@@ -1,4 +1,5 @@
 from enum import StrEnum
+from pydantic import BaseModel, HttpUrl, Field
 
 
 class EventType(StrEnum):
@@ -16,3 +17,20 @@ class RabbitCustomFields(StrEnum):
     URL = "X-URL"
     ATTEMPT = "X-Attempt"
     ERR = "X-ERR"
+
+class Subscriptions(BaseModel):
+    url: HttpUrl
+    event_types: list[EventType]
+    secret: str
+    active: bool
+    client_name: str
+
+
+class Events(BaseModel):
+    event_type: EventType
+    payload: dict[str, int]
+
+
+class EventDB(Events):
+    id: str = Field(alias="_id")
+    idempotency_key: str

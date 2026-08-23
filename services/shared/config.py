@@ -1,15 +1,19 @@
-from enum import StrEnum
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Config(StrEnum):
+class Config(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    RABBIT_URL = "amqp://guest:guest@rabbitmq:5672/"
-    EXCHANGE_NAME = "webhooks.direct"
-    QUEUE_NAME = "q.deliveries"
-    DELIVER_ROUTING_KEY = "deliver"
+    RABBIT_URL: str = "amqp://guest:guest@rabbitmq:5672/"
+    EXCHANGE_NAME: str = "webhooks.direct"
+    QUEUE_NAME: str = "q.deliveries"
+    DELIVER_ROUTING_KEY: str = "deliver"
 
-    DLE_NAME = "webhooks.dle"
-    DLQ_NAME = "q.dlq"
-    DLQ_ROUTING_KEY = "deliver.dlq"
+    DLE_NAME: str = "webhooks.dle"
+    DLQ_NAME: str = "q.dlq"
+    DLQ_ROUTING_KEY: str = "deliver.dlq"
 
-    MONGO_URI = "mongodb://mongo:27017/?replicaSet=rs0"
+    MONGO_URI: str = "mongodb://mongo:27017/?replicaSet=rs0"
+
+    STORAGE_BACKEND: str = "mongo"
+    OUTBOX_POLL_INTERVAL: float = 0.2

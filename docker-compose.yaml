@@ -97,7 +97,8 @@ services:
     depends_on:
       - prometheus
     volumes:
-      - ./services/grafana:/etc/grafana/provisioning/datasources
+      - ./services/grafana/provisioning:/etc/grafana/provisioning
+      - ./services/grafana/dashboards:/etc/grafana/dashboards
       - grafana-data:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin

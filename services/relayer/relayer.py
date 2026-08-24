@@ -1,13 +1,14 @@
-from shared.storage.factory import make_storage
 import asyncio
-import aio_pika
-from aio_pika import Message, DeliveryMode
 import json
+import uuid
+from collections.abc import AsyncGenerator
+from contextlib import aclosing
+
+import aio_pika
+from aio_pika import DeliveryMode, Message
 from shared.config import Config
 from shared.models import *
-import uuid
-from typing import AsyncGenerator
-from contextlib import aclosing
+from shared.storage.factory import make_storage
 
 
 async def relayer():

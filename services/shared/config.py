@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Config(BaseSettings):
+class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     RABBIT_URL: str = "amqp://guest:guest@rabbitmq:5672/"
@@ -17,3 +17,6 @@ class Config(BaseSettings):
 
     STORAGE_BACKEND: str = "mongo"
     OUTBOX_POLL_INTERVAL: float = 0.2
+
+
+Config = Settings()

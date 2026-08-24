@@ -1,7 +1,7 @@
-from shared.storage.base import Storage
-from shared.config import Config
-from shared.storage.mongo import MongoStorage
 from pymongo import AsyncMongoClient
+from shared.config import Config
+from shared.storage.base import Storage
+from shared.storage.mongo import MongoStorage
 
 
 def make_storage() -> Storage:

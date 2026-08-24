@@ -1,13 +1,11 @@
 import datetime as dt
 from datetime import datetime
-from typing import Any
+from typing import Any, Self
 
 from pymongo import AsyncMongoClient, ReturnDocument
 from pymongo.asynchronous.collection import AsyncCollection
-
-from shared.storage.base import Storage
 from shared.models import *
-from typing_extensions import Self
+from shared.storage.base import Storage
 
 
 class MongoStorage(Storage):

@@ -8,8 +8,7 @@ RUN uv sync --frozen --no-install-project --no-dev
 FROM python:3.13-slim
 COPY --from=builder /opt/venv /opt/venv
 WORKDIR /app
-COPY services/sink/ .
+COPY services/relayer/ .
 COPY services/shared/ ./shared/
 ENV PATH="/opt/venv/bin:$PATH"
-EXPOSE 9001
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9001"]
+CMD ["sh", "-c", "python shared/declare_queues.py && python -u relayer.py"]

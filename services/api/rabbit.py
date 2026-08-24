@@ -1,8 +1,8 @@
+from contextlib import asynccontextmanager
+
 import aio_pika
 from aio_pika import ExchangeType
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
-import os
 from shared.config import Config
 
 

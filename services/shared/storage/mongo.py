@@ -30,6 +30,9 @@ class MongoStorage(Storage):
         await self.deliveries_collection.create_index(
             [("event_id", 1), ("subscription_id", 1)], unique=True
         )
+        await self.events_collection.create_index(
+            [("published", 1), ("_id", 1)]
+        )
         return self
 
     async def __aexit__(self, *exc: object):
@@ -92,7 +95,7 @@ class MongoStorage(Storage):
             params["_id"] = {"$gt": start_id}
         batch = (
             await self.events_collection.find(params)
-            .sort([("accepted_at", 1), ("_id", 1)])
+            .sort({"_id": 1})
             .limit(500)
             .to_list(500)
         )

@@ -1,6 +1,8 @@
-import aio_pika
 import asyncio
-from config import Config
+
+import aio_pika
+
+from shared.config import Config
 
 
 async def declare_queues():

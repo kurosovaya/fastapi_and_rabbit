@@ -32,8 +32,12 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-    command: 
-       ["--compatible-mode", "--collect-all", "--mongodb.uri=mongodb://mongo:27017/?directConnection=true"]
+    command:
+      [
+        "--compatible-mode",
+        "--collect-all",
+        "--mongodb.uri=mongodb://mongo:27017/?directConnection=true",
+      ]
     ports:
       - 9216:9216
   rabbitmq:
@@ -62,6 +66,15 @@ services:
         condition: service_completed_successfully
       rabbitmq:
         condition: service_healthy
+  relayer:
+    build:
+      context: .
+      dockerfile: services/relayer/Dockerfile
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
   worker:
     build:
       context: .
@@ -69,6 +82,8 @@ services:
     deploy:
       replicas: 1
     depends_on:
+      mongo-init:
+        condition: service_completed_successfully
       rabbitmq:
         condition: service_healthy
     # ports:

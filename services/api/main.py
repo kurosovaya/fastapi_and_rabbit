@@ -1,12 +1,12 @@
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Annotated
-import uuid
-from aio_pika.abc import AbstractExchange
+
 from fastapi import Depends, FastAPI, Header, Request, status
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 from pymongo.errors import DuplicateKeyError
 from rabbit import lifespan as rabbit_lifespan
+from shared.ids import new_id
 from shared.models import *
 from shared.storage.base import Storage
 from storage_lifespan import lifespan as storage_lifespan
@@ -25,10 +25,6 @@ app = FastAPI(lifespan=lifespan)
 Instrumentator().instrument(app).expose(app)
 
 
-def get_exchange(request: Request) -> AbstractExchange:
-    return request.app.state.rabbit_exchange
-
-
 def get_storage(request: Request) -> Storage:
     return request.app.state.storage
 
@@ -40,7 +36,7 @@ async def subscriptions(
 
     client_id = await storage.ensure_client(subscriptions.client_name)
 
-    sub_id = f"sub_{uuid.uuid4().hex}"
+    sub_id = new_id("sub")
     await storage.create_subscription(sub_id, client_id, subscriptions)
     return sub_id
 
@@ -53,7 +49,7 @@ async def events(
 ) -> str:
 
     try:
-        event_id = f"evt_{uuid.uuid4().hex}"
+        event_id = new_id("evt")
         await storage.create_event(event_id, idempotency_key, events)
 
         return event_id

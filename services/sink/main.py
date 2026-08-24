@@ -1,27 +1,19 @@
-from fastapi import FastAPI, status, Depends, status
-from fastapi.responses import JSONResponse
-from pymongo import AsyncMongoClient
 from collections import defaultdict
-from pydantic import BaseModel, Field
-from shared.models import EventType
-from shared.config import Config
-from typing import Any
-from pymongo.asynchronous.collection import AsyncCollection
 from random import randint
-from prometheus_fastapi_instrumentator import Instrumentator
+from typing import Any
 
+from fastapi import Depends, FastAPI, status
+from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
+from pydantic import BaseModel, Field
+from pymongo import AsyncMongoClient
+from pymongo.asynchronous.collection import AsyncCollection
+from shared.config import Config
+from shared.models import EventType
 
 app = FastAPI()
 Instrumentator().instrument(app).expose(app)
 mongodb_client: AsyncMongoClient[dict[str, Any]] = AsyncMongoClient(Config.MONGO_URI)
-
-
-def get_events_collection() -> AsyncCollection:
-    return mongodb_client["webhooks"]["events"]
-
-
-def get_subscriptions_collection() -> AsyncCollection:
-    return mongodb_client["webhooks"]["subscriptions"]
 
 
 def get_clients_sink_settings() -> AsyncCollection:
@@ -73,7 +65,7 @@ async def config(
 
 @app.post("/hook_404/{client_id}", status_code=status.HTTP_404_NOT_FOUND)
 async def hook_404(client_id: str, hook: ReceivedHook):
-    return "Poshel na hui"
+    return "Error"
 
 
 @app.get("/received_hook")

@@ -1,9 +1,8 @@
 from abc import abstractmethod
 from datetime import datetime
-from typing import Protocol
+from typing import Protocol, Self
 
 from shared.models import *
-from typing_extensions import Self
 
 
 class Storage(Protocol):

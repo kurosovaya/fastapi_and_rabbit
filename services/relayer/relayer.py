@@ -1,12 +1,12 @@
 import asyncio
 import json
-import uuid
 from collections.abc import AsyncGenerator
 from contextlib import aclosing
 
 import aio_pika
 from aio_pika import DeliveryMode, Message
 from shared.config import Config
+from shared.ids import new_id
 from shared.models import *
 from shared.storage.factory import make_storage
 
@@ -39,7 +39,7 @@ async def relayer():
                         for subscription in await storage.get_subscriptions(
                             event["event_type"]
                         ):
-                            dlv_id = f"dlv_{uuid.uuid4().hex}"
+                            dlv_id = new_id("dlv")
                             message = Message(
                                 body=json.dumps(
                                     {
@@ -60,11 +60,11 @@ async def relayer():
                                 content_type="application/json",
                             )
 
-                            await storage.create_delivery(
-                                dlv_id, event["_id"], subscription["_id"]
-                            )
                             await exchange.publish(
                                 message, routing_key=Config.DELIVER_ROUTING_KEY
+                            )
+                            await storage.create_delivery(
+                                dlv_id, event["_id"], subscription["_id"]
                             )
                         await storage.mark_event_as_published(event["_id"])
             await asyncio.sleep(Config.OUTBOX_POLL_INTERVAL)

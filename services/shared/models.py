@@ -1,5 +1,6 @@
 from enum import StrEnum
-from pydantic import BaseModel, HttpUrl, Field
+
+from pydantic import BaseModel, Field, HttpUrl
 
 
 class EventType(StrEnum):

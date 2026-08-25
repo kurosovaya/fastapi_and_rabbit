@@ -37,8 +37,8 @@ async def subscriptions(
     client_id = await storage.ensure_client(subscriptions.client_name)
 
     sub_id = new_id("sub")
-    await storage.create_subscription(sub_id, client_id, subscriptions)
-    return sub_id
+    return_id = await storage.create_subscription(sub_id, client_id, subscriptions)
+    return return_id
 
 
 @app.post("/events", status_code=202)

@@ -27,12 +27,13 @@ class MongoStorage(Storage):
     async def __aenter__(self) -> Self:
         await self.events_collection.create_index("idempotency_key", unique=True)
         await self.clients_collection.create_index("client_name", unique=True)
+        await self.subscriptions_collection.create_index(
+            [("client_id", 1), ("url", 1)], unique=True
+        )
         await self.deliveries_collection.create_index(
             [("event_id", 1), ("subscription_id", 1)], unique=True
         )
-        await self.events_collection.create_index(
-            [("published", 1), ("_id", 1)]
-        )
+        await self.events_collection.create_index([("published", 1), ("_id", 1)])
         return self
 
     async def __aexit__(self, *exc: object):
@@ -46,22 +47,35 @@ class MongoStorage(Storage):
             upsert=True,
             return_document=ReturnDocument.AFTER,
         )
+        if doc is None:
+            raise RuntimeError("upsert did not return a document")
         return str(doc["_id"])
 
     async def create_subscription(
         self, sub_id: str, client_id: str, subscriptions: Subscriptions
-    ):
-        await self.subscriptions_collection.insert_one(
+    ) -> str:
+        doc = await self.subscriptions_collection.find_one_and_update(
+            {"client_id": client_id, "url": str(subscriptions.url)},
             {
-                "_id": sub_id,
-                "client_id": client_id,
-                "url": str(subscriptions.url),
-                "event_types": subscriptions.event_types,
-                "secret": subscriptions.secret,
-                "active": subscriptions.active,
-                "created_at": datetime.now(dt.UTC),
-            }
+                "$setOnInsert": {
+                    "_id": sub_id,
+                    "client_id": client_id,
+                    "url": str(subscriptions.url),
+                    "created_at": datetime.now(dt.UTC)                    
+                },
+                "$set": {
+                    "active": subscriptions.active,
+                    "secret": subscriptions.secret,
+                    "event_types": subscriptions.event_types
+                },
+            },
+            projection={"_id"},
+            upsert=True,
+            return_document=ReturnDocument.AFTER
         )
+        if doc is None:
+            raise RuntimeError("upsert did not return a document")
+        return str(doc["_id"])
 
     async def get_subscriptions(self, event_types: str | list):
         return await self.subscriptions_collection.find(

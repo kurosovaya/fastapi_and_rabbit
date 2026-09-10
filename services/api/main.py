@@ -1,6 +1,7 @@
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Annotated
 
+import debugpy
 from fastapi import Depends, FastAPI, Header, Request, status
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -11,6 +12,8 @@ from shared.models import *
 from shared.storage.base import Storage
 from storage_lifespan import lifespan as storage_lifespan
 
+# debugpy.listen(("0.0.0.0", 5678))
+# debugpy.wait_for_client()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

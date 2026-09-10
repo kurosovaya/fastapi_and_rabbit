@@ -15,6 +15,8 @@ class Settings(BaseSettings):
 
     MONGO_URI: str = "mongodb://mongo:27017/?replicaSet=rs0"
 
+    POSTGRES_URI: str = "postgresql://postgres:password@postgres:5432/postgres"
+
     STORAGE_BACKEND: str = "mongo"
     OUTBOX_POLL_INTERVAL: float = 0.2
 

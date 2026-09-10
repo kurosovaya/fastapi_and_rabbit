@@ -55,17 +55,19 @@ async def relayer():
                                     "X-Event-Id": event["_id"],
                                     "X-Dlv-Id": dlv_id,
                                     "X-Client-Id": str(subscription["client_id"]),
+                                    #"X-Client-Name": subscription[""],
                                     "X-Url": subscription["url"],
                                 },
                                 content_type="application/json",
                             )
 
-                            await exchange.publish(
-                                message, routing_key=Config.DELIVER_ROUTING_KEY
-                            )
-                            await storage.create_delivery(
-                                dlv_id, event["_id"], subscription["_id"]
-                            )
+                            if not await storage.find_delivery(event["_id"], subscription["_id"]):
+                                await exchange.publish(
+                                    message, routing_key=Config.DELIVER_ROUTING_KEY
+                                )
+                                await storage.create_delivery(
+                                    dlv_id, event["_id"], subscription["_id"]
+                                )
                         await storage.mark_event_as_published(event["_id"])
             await asyncio.sleep(Config.OUTBOX_POLL_INTERVAL)
 

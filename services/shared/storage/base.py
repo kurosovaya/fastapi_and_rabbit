@@ -40,6 +40,10 @@ class Storage(Protocol):
         raise NotImplementedError()
 
     @abstractmethod
+    async def find_delivery(self, event_id: str, subscription_id: str):
+        raise NotImplementedError()
+
+    @abstractmethod
     async def create_delivery(self, dlv_id: str, event_id: str, subscription_id: str):
         raise NotImplementedError()
 
@@ -53,6 +57,14 @@ class Storage(Protocol):
         last_error: str | None = None,
         next_attempt_at: datetime | None = None,
     ):
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def get_sink_settings(self) -> list[dict]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def set_sink_settings(self, client_id: str, accept_rate: int, delay_ms: int):
         raise NotImplementedError()
 
     @abstractmethod

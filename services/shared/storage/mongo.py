@@ -23,12 +23,18 @@ class MongoStorage(Storage):
         self.deliveries_collection: AsyncCollection = self.mongodb_client["webhooks"][
             "deliveries"
         ]
+        self.sink_settings_collection: AsyncCollection = self.mongodb_client[
+            "webhooks"
+        ]["sink_settings"]
 
     async def __aenter__(self) -> Self:
         await self.events_collection.create_index("idempotency_key", unique=True)
         await self.clients_collection.create_index("client_name", unique=True)
         await self.subscriptions_collection.create_index(
             [("client_id", 1), ("url", 1)], unique=True
+        )
+        await self.subscriptions_collection.create_index(
+            [("event_types", 1), ("active", 1)], unique=False
         )
         await self.deliveries_collection.create_index(
             [("event_id", 1), ("subscription_id", 1)], unique=True
@@ -79,7 +85,7 @@ class MongoStorage(Storage):
 
     async def get_subscriptions(self, event_types: str | list):
         return await self.subscriptions_collection.find(
-            {"event_types": event_types}
+            {"event_types": event_types, "active": True}
         ).to_list()
 
     async def create_event(self, event_id: str, idempotency_key: str, events: Events):
@@ -119,6 +125,10 @@ class MongoStorage(Storage):
         await self.events_collection.update_one(
             {"_id": id}, {"$set": {"published": True}}
         )
+
+    async def find_delivery(self, event_id: str, subscription_id: str):
+        return await self.deliveries_collection.find_one(
+            {"event_id": event_id, "subscription_id": subscription_id})
 
     async def create_delivery(self, dlv_id: str, event_id: str, subscription_id: str):
         await self.deliveries_collection.insert_one(
@@ -160,6 +170,24 @@ class MongoStorage(Storage):
         await self.deliveries_collection.update_one(
             {"_id": id},
             {"$set": {**set_params}},
+        )
+
+    async def get_sink_settings(self) -> list[dict]:
+        docs = await self.sink_settings_collection.find().to_list()
+        return [
+            {
+                "client_id": str(doc["_id"]),
+                "accept_rate": doc["accept_rate"],
+                "delay_ms": doc["delay_ms"],
+            }
+            for doc in docs
+        ]
+
+    async def set_sink_settings(self, client_id: str, accept_rate: int, delay_ms: int):
+        await self.sink_settings_collection.update_one(
+            {"_id": client_id},
+            {"$set": {"accept_rate": accept_rate, "delay_ms": delay_ms}},
+            upsert=True,
         )
 
     async def close(self):

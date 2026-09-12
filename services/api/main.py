@@ -4,16 +4,18 @@ from typing import Annotated
 import debugpy
 from fastapi import Depends, FastAPI, Header, Request, status
 from fastapi.responses import JSONResponse
+from metrics import EVENTS_ACCEPTED, EVENTS_IDEMPOTENT_HITS
 from prometheus_fastapi_instrumentator import Instrumentator
 from pymongo.errors import DuplicateKeyError
 from rabbit import lifespan as rabbit_lifespan
 from shared.ids import new_id
-from shared.models import *
+from shared.models import Events, Subscriptions
 from shared.storage.base import Storage
 from storage_lifespan import lifespan as storage_lifespan
 
 # debugpy.listen(("0.0.0.0", 5678))
 # debugpy.wait_for_client()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,8 +57,10 @@ async def events(
         event_id = new_id("evt")
         await storage.create_event(event_id, idempotency_key, events)
 
+        EVENTS_ACCEPTED.inc()
         return event_id
     except DuplicateKeyError:
+        EVENTS_IDEMPOTENT_HITS.inc()
         return await storage.get_event_id(idempotency_key)
 
 

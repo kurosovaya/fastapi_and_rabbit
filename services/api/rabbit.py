@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 import aio_pika
 from aio_pika import ExchangeType
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from shared.config import Config
 
 

@@ -2,7 +2,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Protocol, Self
 
-from shared.models import *
+from shared.models import DlvStatus, Events, Subscriptions
 
 
 class Storage(Protocol):
@@ -11,7 +11,9 @@ class Storage(Protocol):
         raise NotImplementedError()
 
     @abstractmethod
-    async def create_subscription(self, sub_id, client_id, subscriptions: Subscriptions):
+    async def create_subscription(
+        self, sub_id, client_id, subscriptions: Subscriptions
+    ):
         raise NotImplementedError()
 
     @abstractmethod
@@ -34,7 +36,6 @@ class Storage(Protocol):
     async def get_unpublished_events(self, start_id: str | None = None):
         raise NotImplementedError()
 
-
     @abstractmethod
     async def mark_event_as_published(self, id: str):
         raise NotImplementedError()
@@ -44,7 +45,9 @@ class Storage(Protocol):
         raise NotImplementedError()
 
     @abstractmethod
-    async def create_delivery(self, dlv_id: str, event_id: str, subscription_id: str):
+    async def create_delivery(
+        self, dlv_id: str, event_id: str, subscription_id: str, accepted_at: datetime
+    ):
         raise NotImplementedError()
 
     @abstractmethod

@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint + types
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: ruff check
+        run: uv run ruff check .
+
+      - name: ruff format
+        run: uv run ruff format --check .
+      - name: mypy
+        run: |
+          set -e
+          for svc in api worker relayer sink; do
+            MYPYPATH="services:services/$svc" uv run mypy "services/$svc"
+          done
+          MYPYPATH=services uv run mypy services/shared
+          uv run mypy tests
+
+  tests:
+    name: tests (${{ matrix.backend }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [postgres, mongo]
+    env:
+      STORAGE_BACKEND: ${{ matrix.backend }}
+      COMPOSE_PROFILES: ${{ matrix.backend }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Start the stack
+        run: docker compose up -d --build
+
+      - name: Wait for api and sink
+        run: |
+          for _ in $(seq 1 60); do
+            if curl -sf localhost:9000/health >/dev/null \
+              && curl -sf localhost:9001/health >/dev/null; then
+              echo "stack is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "stack never became healthy"
+          exit 1
+
+      - name: pytest
+        run: uv run pytest tests -q
+
+      - name: Service logs
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

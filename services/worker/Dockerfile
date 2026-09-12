@@ -11,4 +11,5 @@ WORKDIR /app
 COPY services/worker/ .
 COPY services/shared/ ./shared/
 ENV PATH="/opt/venv/bin:$PATH"
+EXPOSE 9004
 CMD ["sh", "-c", "python shared/declare_queues.py && python -u worker.py"]

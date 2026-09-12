@@ -4,7 +4,7 @@ from typing import Any, Self
 
 from pymongo import AsyncMongoClient, ReturnDocument
 from pymongo.asynchronous.collection import AsyncCollection
-from shared.models import *
+from shared.models import DlvStatus, Events, Subscriptions
 from shared.storage.base import Storage
 
 
@@ -67,17 +67,17 @@ class MongoStorage(Storage):
                     "_id": sub_id,
                     "client_id": client_id,
                     "url": str(subscriptions.url),
-                    "created_at": datetime.now(dt.UTC)                    
+                    "created_at": datetime.now(dt.UTC),
                 },
                 "$set": {
                     "active": subscriptions.active,
                     "secret": subscriptions.secret,
-                    "event_types": subscriptions.event_types
+                    "event_types": subscriptions.event_types,
                 },
             },
             projection={"_id"},
             upsert=True,
-            return_document=ReturnDocument.AFTER
+            return_document=ReturnDocument.AFTER,
         )
         if doc is None:
             raise RuntimeError("upsert did not return a document")
@@ -128,9 +128,12 @@ class MongoStorage(Storage):
 
     async def find_delivery(self, event_id: str, subscription_id: str):
         return await self.deliveries_collection.find_one(
-            {"event_id": event_id, "subscription_id": subscription_id})
+            {"event_id": event_id, "subscription_id": subscription_id}
+        )
 
-    async def create_delivery(self, dlv_id: str, event_id: str, subscription_id: str):
+    async def create_delivery(
+        self, dlv_id: str, event_id: str, subscription_id: str, accepted_at: datetime
+    ):
         await self.deliveries_collection.insert_one(
             {
                 "_id": dlv_id,
@@ -143,7 +146,7 @@ class MongoStorage(Storage):
                 "locked_until": None,
                 "next_attempt_at": None,
                 "last_error": None,
-                "accepted_at": datetime.now(dt.UTC),
+                "accepted_at": accepted_at,
                 "delivered_at": None,
             }
         )

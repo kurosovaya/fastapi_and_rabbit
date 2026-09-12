@@ -57,11 +57,19 @@ services:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 3s
       retries: 10
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.20.1
+    profiles: ["postgres"]
+    environment:
+      - DATA_SOURCE_URI=postgres:5432/postgres?sslmode=disable
+      - DATA_SOURCE_USER=postgres
+      - DATA_SOURCE_PASS=password
   rabbitmq:
     image: rabbitmq:4.3.4-management-alpine
     ports: ["5672:5672", "15672:15672"]
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+      - ./services/rabbitmq/rabbitmq.conf:/etc/rabbitmq/conf.d/20-prometheus.conf:ro
     healthcheck:
       test: rabbitmq-diagnostics -q check_port_connectivity
       interval: 15s
@@ -109,6 +117,8 @@ services:
     build:
       context: .
       dockerfile: services/worker/Dockerfile
+    expose:
+      - "9004"
     deploy:
       replicas: 1
     depends_on:

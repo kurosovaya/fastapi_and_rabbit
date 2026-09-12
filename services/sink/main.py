@@ -17,7 +17,6 @@ class HooksConfig(BaseModel):
     delay_ms: int = Field(default=20, ge=0)
 
 
-# A client nobody configured is healthy and fast.
 DEFAULT_CONFIG = HooksConfig()
 
 settings: dict[str, HooksConfig] = {}
@@ -40,12 +39,14 @@ async def storage_lifespan(app: FastAPI):
         await load_settings(storage)
         yield
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
     async with AsyncExitStack() as stack:
         await stack.enter_async_context(storage_lifespan(app))
         yield
+
 
 def get_storage(request: Request) -> Storage:
     return request.app.state.storage
@@ -61,7 +62,7 @@ class ReceivedHook(BaseModel):
     payload: dict[str, int]
 
 
-received_hooks = defaultdict(list)
+received_hooks: defaultdict[str, list] = defaultdict(list)
 
 
 @app.post("/hook/{client}")

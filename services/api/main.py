@@ -1,7 +1,7 @@
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Annotated
 
-import debugpy
+# import debugpy
 from fastapi import Depends, FastAPI, Header, Request, status
 from fastapi.responses import JSONResponse
 from metrics import EVENTS_ACCEPTED, EVENTS_IDEMPOTENT_HITS

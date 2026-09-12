@@ -1,3 +1,4 @@
+import os
 import uuid
 from collections.abc import Generator
 from time import perf_counter
@@ -5,7 +6,7 @@ from time import perf_counter
 import httpx
 import pytest
 
-base_url = "http://localhost:9001"
+base_url = f"http://localhost:{os.getenv('SINK_PORT', '9001')}"
 
 
 def hook_body(event_id: str = "evt_test", order_id: int = 1) -> dict:

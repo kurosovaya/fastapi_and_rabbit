@@ -1,3 +1,4 @@
+import os
 import re
 import uuid
 from collections.abc import Generator
@@ -5,7 +6,7 @@ from collections.abc import Generator
 import httpx
 import pytest
 
-base_url = "http://localhost:9000"
+base_url = f"http://localhost:{os.getenv('API_PORT', '9000')}"
 
 
 def event_body(order_id: int = 1) -> dict:

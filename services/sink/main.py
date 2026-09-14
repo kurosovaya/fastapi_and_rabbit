@@ -1,4 +1,6 @@
 import asyncio
+import hashlib
+import hmac
 from collections import defaultdict
 from contextlib import AsyncExitStack, asynccontextmanager
 from random import randint
@@ -65,16 +67,29 @@ class ReceivedHook(BaseModel):
 received_hooks: defaultdict[str, list] = defaultdict(list)
 
 
-@app.post("/hook/{client}")
-async def hook(client: str, hook: ReceivedHook):
+@app.post("/hook/{client_id}")
+async def hook(
+    client_id: str,
+    request: Request,
+    hook: ReceivedHook,
+    storage: Storage = Depends(get_storage),
+):
+    body = await request.body()
+    subscription_id = request.headers.get("X-Subscription-Id", "")
+    secret: str = await storage.get_secret(subscription_id)
+    expected = "sha256=" + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    hook = ReceivedHook.model_validate_json(body)
 
-    clients_stngs = settings.get(client, DEFAULT_CONFIG)
+    if not hmac.compare_digest(expected, request.headers.get("X-Signature", "")):
+        return JSONResponse("bad signature", status.HTTP_401_UNAUTHORIZED)
+
+    clients_stngs = settings.get(client_id, DEFAULT_CONFIG)
 
     await asyncio.sleep(clients_stngs.delay_ms / 1000)
 
     num = randint(1, 100)
     if num <= clients_stngs.accept_rate:
-        received_hooks[client].append(hook.model_dump())
+        received_hooks[client_id].append(hook.model_dump())
     else:
         return JSONResponse("Error!", status.HTTP_500_INTERNAL_SERVER_ERROR)
 

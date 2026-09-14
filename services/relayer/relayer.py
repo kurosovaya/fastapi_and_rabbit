@@ -1,4 +1,6 @@
 import asyncio
+import hashlib
+import hmac
 import json
 from collections.abc import AsyncGenerator
 from contextlib import aclosing
@@ -39,16 +41,21 @@ async def relayer():
                             event["event_type"]
                         ):
                             dlv_id = new_id("dlv")
+                            body = json.dumps(
+                                {
+                                    "dlv_id": dlv_id,
+                                    "event_id": event["_id"],
+                                    "event_type": event["event_type"],
+                                    "url": subscription["url"],
+                                    "payload": event["payload"],
+                                }
+                            ).encode()
+                            signature = hmac.new(
+                                subscription["secret"].encode(), body, hashlib.sha256
+                            ).hexdigest()
+
                             message = Message(
-                                body=json.dumps(
-                                    {
-                                        "dlv_id": dlv_id,
-                                        "event_id": event["_id"],
-                                        "event_type": event["event_type"],
-                                        "url": subscription["url"],
-                                        "payload": event["payload"],
-                                    }
-                                ).encode(),
+                                body=body,
                                 delivery_mode=DeliveryMode.PERSISTENT,
                                 headers={
                                     "X-Event-Id": event["_id"],
@@ -57,6 +64,8 @@ async def relayer():
                                     # "X-Client-Name": subscription[""],
                                     "X-Url": subscription["url"],
                                     "X-Accepted-At": event["accepted_at"].isoformat(),
+                                    "X-Subscription-Id": subscription["_id"],
+                                    "X-Signature": f"sha256={signature}",
                                 },
                                 content_type="application/json",
                             )

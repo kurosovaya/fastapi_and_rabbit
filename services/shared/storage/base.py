@@ -71,6 +71,10 @@ class Storage(Protocol):
         raise NotImplementedError()
 
     @abstractmethod
+    async def get_secret(self, subscription_id: str):
+        raise NotImplementedError()
+
+    @abstractmethod
     def close(self):
         raise NotImplementedError()
 

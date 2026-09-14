@@ -193,5 +193,13 @@ class MongoStorage(Storage):
             upsert=True,
         )
 
+    async def get_secret(self, subscription_id: str):
+        subscription = await self.subscriptions_collection.find_one(
+            {"_id": subscription_id}, projection=["secret"]
+        )
+        if subscription is None:
+            raise RuntimeError("Secret not found")
+        return subscription["secret"]
+
     async def close(self):
         await self.mongodb_client.close()

@@ -232,5 +232,18 @@ class PostgresStorage(Storage):
                 (client_id, accept_rate, delay_ms),
             )
 
+    async def get_secret(self, subscription_id: str):
+        async with self.postgres_client.connection() as conn:
+            row = await (
+                await conn.execute(
+                    """select secret from subscriptions
+                where _id = %(subscription_id)s;""",
+                    {"subscription_id": subscription_id},
+                )
+            ).fetchone()
+        if row is None:
+            raise RuntimeError("Secret not found")
+        return row["secret"]
+
     async def close(self):
         await self.postgres_client.close()

@@ -61,7 +61,13 @@ async def worker():
                         response = await client.post(
                             f"http://sink:9001/hook/{client_id}",
                             content=message.body,
-                            headers={"Content-Type": "application/json"},
+                            headers={
+                                "Content-Type": "application/json",
+                                "X-Signature": str(message.headers.get("X-Signature")),
+                                "X-Subscription-Id": str(
+                                    message.headers.get("X-Subscription-Id")
+                                ),
+                            },
                         )
                     print(f"Sent: {message.body.decode()}")
                     response.raise_for_status()

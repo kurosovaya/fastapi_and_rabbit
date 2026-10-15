@@ -127,7 +127,9 @@ class PostgresStorage(Storage):
             ).fetchone()
         return row
 
-    async def get_unpublished_events(self, start_id: str | None = None, limit: int = 10):
+    async def get_unpublished_events(
+        self, start_id: str | None = None, limit: int = 10
+    ):
 
         async with self.postgres_client.connection() as conn:
             batch = await (

@@ -1,5 +1,5 @@
 x-app-environment: &app-environment
-  STORAGE_BACKEND: ${STORAGE_BACKEND:-mongo}
+  STORAGE_BACKEND: ${STORAGE_BACKEND:-postgres}
 
 x-storage-depends-on: &storage-depends-on
   mongo-init:
@@ -91,12 +91,12 @@ services:
       start_period: 10s
   api:
     volumes:
-      - ./services/api:/app
+      - ./services/api/http:/app
       - ./services/shared:/app/shared
     command: uvicorn main:app --host 0.0.0.0 --port 9000 --reload
     build:
       context: .
-      dockerfile: services/api/Dockerfile
+      dockerfile: services/api/http/Dockerfile
     ports:
       - "${API_PORT:-9000}:9000"
       - "${API_DEBUG_PORT:-5678}:5678"
@@ -110,6 +110,8 @@ services:
     build:
       context: .
       dockerfile: services/relayer/Dockerfile
+    deploy:
+      replicas: 10
     depends_on:
       <<: *storage-depends-on
       rabbitmq:
@@ -123,7 +125,7 @@ services:
     expose:
       - "9004"
     deploy:
-      replicas: 1
+      replicas: 5
     depends_on:
       <<: *storage-depends-on
       rabbitmq:

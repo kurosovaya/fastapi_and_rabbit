@@ -8,7 +8,7 @@ RUN uv sync --frozen --no-install-project --no-dev
 FROM python:3.13-slim
 COPY --from=builder /opt/venv /opt/venv
 WORKDIR /app
-COPY services/api/ .
+COPY services/api/http/ .
 COPY services/shared/ ./shared/
 ENV PATH="/opt/venv/bin:$PATH"
 EXPOSE 9000

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     POSTGRES_URI: str = "postgresql://postgres:password@postgres:5432/postgres"
 
-    STORAGE_BACKEND: str = "mongo"
+    STORAGE_BACKEND: str = "postgres"
     OUTBOX_POLL_INTERVAL: float = 0.2
 
 

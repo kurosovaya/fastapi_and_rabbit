@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: worker
+  name: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+      - image: fastapi_and_rabbit-worker:latest
+        imagePullPolicy: IfNotPresent
+        name: fastapi-and-rabbit-worker-8vw5z
+        ports:
+        - containerPort: 30904
+        resources: {}
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: worker
+  name: worker
+spec:
+  ports:
+  - name: 30904-30904
+    port: 30904
+    protocol: TCP
+    targetPort: 30904
+  selector:
+    app: worker
+  type: ClusterIP
+status:
+  loadBalancer: {}

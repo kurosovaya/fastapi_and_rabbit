@@ -43,7 +43,7 @@ async def worker():
     async with make_storage() as storage:
         rabbit_connect = await aio_pika.connect_robust(Config.RABBIT_URL)
         channel = await rabbit_connect.channel()
-        await channel.set_qos(1)
+        await channel.set_qos(20)
         exchange = await channel.get_exchange(Config.EXCHANGE_NAME)
         queue = await channel.get_queue(Config.QUEUE_NAME)
         dead_exchange = await channel.get_exchange(Config.DLE_NAME)

@@ -127,7 +127,7 @@ class PostgresStorage(Storage):
             ).fetchone()
         return row
 
-    async def get_unpublished_events(self, start_id: str | None = None):
+    async def get_unpublished_events(self, start_id: str | None = None, limit: int = 10):
 
         async with self.postgres_client.connection() as conn:
             batch = await (
@@ -136,7 +136,7 @@ class PostgresStorage(Storage):
             where published = false AND (%(start_id)s::text IS NULL OR _id > %(start_id)s)
             order by _id
             limit %(limit)s""",
-                    {"start_id": start_id, "limit": 500},
+                    {"start_id": start_id, "limit": limit},
                 )
             ).fetchall()
         return batch

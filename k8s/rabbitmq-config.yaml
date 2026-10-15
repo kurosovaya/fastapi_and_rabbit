@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  20-prometheus.conf: |
+    prometheus.return_per_object_metrics = true
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config

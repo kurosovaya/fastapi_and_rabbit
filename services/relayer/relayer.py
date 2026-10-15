@@ -18,7 +18,7 @@ async def relayer():
     async with make_storage() as storage:
         rabbit_connect = await aio_pika.connect_robust(Config.RABBIT_URL)
         channel = await rabbit_connect.channel()
-        await channel.set_qos(1)
+        await channel.set_qos(10)
         exchange = await channel.get_exchange(Config.EXCHANGE_NAME)
 
         async def get_unpublished() -> AsyncGenerator[list]:

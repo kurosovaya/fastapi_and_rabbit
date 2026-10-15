@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: relayer
+  name: relayer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: relayer
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: relayer
+    spec:
+      containers:
+      - image: fastapi_and_rabbit-relayer:latest
+        imagePullPolicy: IfNotPresent
+        name: fastapi-and-rabbit-relayer-npgts
+        ports:
+        - containerPort: 30905
+        resources: {}
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: relayer
+  name: relayer
+spec:
+  ports:
+  - name: 30905-30905
+    port: 30905
+    protocol: TCP
+    targetPort: 30905
+  selector:
+    app: relayer
+  type: ClusterIP
+status:
+  loadBalancer: {}

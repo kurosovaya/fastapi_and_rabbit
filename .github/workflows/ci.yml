@@ -37,6 +37,20 @@ jobs:
           done
           MYPYPATH=services uv run mypy services/shared
           uv run mypy tests
+  k8s-manifests:
+    name: k8s manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      KUBECONFORM_VERSION: v0.8.0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubeconform
+        run: curl -sSL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" | tar -xz kubeconform
+
+      - name: Validate manifests
+        run: ./kubeconform -strict -summary -kubernetes-version 1.36.1 k8s/*.yaml
 
   tests:
     name: tests (${{ matrix.backend }})

@@ -1,0 +1,17 @@
+apiVersion: v1
+data:
+  dashboards.yml: |
+    apiVersion: 1
+    providers:
+      - name: default
+        orgId: 1
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 30
+        allowUiUpdates: false
+        options:
+          path: /etc/grafana/dashboards
+          foldersFromFilesStructure: false
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-providers
